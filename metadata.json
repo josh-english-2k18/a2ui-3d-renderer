@@ -1,0 +1,5 @@
+{
+  "name": "A2UI Three.js Renderer",
+  "description": "High-performance WebGL renderer for the A2UI protocol featuring cinematic lighting, physics-based materials, and flexbox layout engines.",
+  "requestFramePermissions": []
+}
