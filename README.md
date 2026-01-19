@@ -10,6 +10,7 @@ High-performance WebGL renderer for the A2UI (Agent-to-UI) protocol, built with 
 - Three.js scene with depth, parallax, and post-processing
 - Live protocol inspector panel for debugging updates
 - Modular component mapping for cards, text, buttons, rows, and columns
+- Optional Gemini 3 Flash mode when an API key is present
 
 ## Overview
 This project demonstrates a GPU-accelerated renderer for A2UI-style component trees. A mock stream emits progressive updates, which are laid out in a simplified flexbox pass and then rendered as interactive 3D cards, text, and controls.
@@ -37,6 +38,7 @@ Mock Stream (A2UI messages)
 - `App.tsx` main UI and stream loop
 - `components/Renderer3D.tsx` scene setup and effects
 - `components/A2UINode.tsx` component-to-geometry mapping
+- `services/geminiStream.ts` Gemini-backed A2UI generator
 - `services/layoutEngine.ts` layout computation
 - `services/mockStream.ts` simulated A2UI stream
 - `types.ts` shared TypeScript types
@@ -60,8 +62,9 @@ npm run preview
 ```
 
 ## Configuration
-- This demo runs fully offline using the mock stream.
-- If you connect a real A2UI stream, put secrets in `.env.local` and keep them out of git.
+- By default, this demo runs fully offline using the mock stream.
+- If a `GEMINI_API_KEY` is present in `.env` or `.env.local`, the app switches to Gemini 3 Flash.
+- Keep secrets out of git.
 
 ## Extending the renderer
 - Add new component mappings in `components/A2UINode.tsx`.

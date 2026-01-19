@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { createMockStream } from './services/mockStream';
+import { createGeminiStream } from './services/geminiStream';
 import { calculateLayout } from './services/layoutEngine';
 import { Renderer3D } from './components/Renderer3D';
 import { StreamMessage, RenderNode, A2UIComponent } from './types';
@@ -45,31 +46,50 @@ const App = () => {
   const rootRef = useRef<A2UIComponent | null>(null);
 
   useEffect(() => {
-    const initStream = async () => {
-      setStatus('Connecting to AI Agent...');
-      const stream = createMockStream();
-      
+    const apiKey = process.env.GEMINI_API_KEY;
+    const useGemini = Boolean(apiKey);
+    const streamLabel = useGemini ? 'Gemini 3 Flash' : 'Mock Stream';
+
+    const consumeStream = async (stream: AsyncGenerator<StreamMessage>) => {
       for await (const msg of stream) {
         setMessages(prev => [msg, ...prev].slice(0, 50)); // Keep last 50
-        
+
         if (msg.type === 'heartbeat') {
-          setStatus('Connected (Streaming)');
+          setStatus(`Connected (${streamLabel})`);
         }
-        
+
         if (msg.type === 'surfaceUpdate') {
           // New UI Tree
           const newRoot = msg.payload.root;
           rootRef.current = newRoot;
           const layout = calculateLayout(newRoot);
           setLayoutRoot(layout);
+          setStatus(`Connected (${streamLabel})`);
         }
-        
+
         if (msg.type === 'dataModelUpdate') {
           if (rootRef.current && applyDataModelUpdate(rootRef.current, msg.payload)) {
             const layout = calculateLayout(rootRef.current);
             setLayoutRoot(layout);
           }
         }
+      }
+    };
+
+    const initStream = async () => {
+      setStatus(useGemini ? 'Connecting to Gemini 3 Flash...' : 'Connecting to Mock Stream...');
+
+      if (!useGemini) {
+        await consumeStream(createMockStream());
+        return;
+      }
+
+      try {
+        await consumeStream(createGeminiStream(apiKey as string));
+      } catch (error) {
+        console.error('Gemini stream failed, falling back to mock stream.', error);
+        setStatus('Gemini unavailable, falling back to Mock Stream...');
+        await consumeStream(createMockStream());
       }
     };
 
